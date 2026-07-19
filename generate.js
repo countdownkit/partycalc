@@ -59,7 +59,7 @@ function layout({ title, desc, urlPath, h1, hero, body, useTool }) {
 </main>
 <footer class="site-foot"><div class="wrap">
   <a href="${BASE}/">Home</a><a href="${BASE}/party-food-calculator/">Full Menu Planner</a><a href="${BASE}/#items">All Items</a>
-  <span>· ${SITE} — free food &amp; drink quantity planning for parties. Standard catering portions; adjust for your crowd.</span>
+  <span>· ${SITE} — free food &amp; drink quantity planning for parties. Standard catering portions; adjust for your crowd. Part of <a href="https://elevatedprogress.com/">Elevated Progress</a>.</span>
 </div></footer>
 ${useTool ? `<script src="${BASE}/party-math.js" defer></script>\n<script src="${BASE}/tool.js" defer></script>` : ""}
 </body>
