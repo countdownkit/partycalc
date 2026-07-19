@@ -1,0 +1,10 @@
+{
+  "name": "partycalc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static generator for the Party Calculator site",
+  "scripts": {
+    "build": "node generate.js",
+    "preview": "node server.js"
+  }
+}
