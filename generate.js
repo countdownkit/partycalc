@@ -143,18 +143,42 @@ for (const it of ITEMS) {
   }
 }
 
-// -- full menu planner --
+// -- full menu planner (also embedded on the homepage) --
+// Chips grouped for display; the balanced-menu math lives in party-math.js CATEGORY.
+const PLANNER_GROUPS = [
+  ["Mains", ["pizza", "burgers", "hot-dogs", "wings", "pulled-pork", "brisket", "tacos", "sandwiches", "fried-chicken", "pasta"]],
+  ["Sides & Apps", ["salad", "appetizers", "chips-and-dip"]],
+  ["Dessert", ["cake", "cupcakes"]],
+  ["Drinks & Extras", ["soda", "beer", "wine", "water", "coffee", "ice"]],
+];
+const PLANNER_DEFAULT = ["pizza", "wings", "chips-and-dip", "cake", "soda", "water", "ice"];
+function plannerTool(idSuffix) {
+  const names = {};
+  for (const it of ITEMS) names[it.slug] = { name: it.name, emoji: it.emoji, href: calcHref(it) };
+  const bySlug = {};
+  for (const it of ITEMS) bySlug[it.slug] = it;
+  const gid = `g${idSuffix}`;
+  const chips = PLANNER_GROUPS.map(([label, slugs]) => `<div class="cat-label">${label}</div>
+    <div class="chips">${slugs.filter(s => bySlug[s]).map(s =>
+      `<button type="button" class="chip${PLANNER_DEFAULT.includes(s) ? " on" : ""}" data-slug="${s}">${bySlug[s].emoji} ${bySlug[s].name}</button>`).join("")}</div>`).join("\n");
+  return `<div class="tool" data-party="menu" data-config='${JSON.stringify(names)}'>
+    <div class="row"><div><label for="${gid}">Number of guests</label><input type="number" id="${gid}" data-guests value="25" min="1"></div></div>
+    <label>What are you serving? (tap to toggle)</label>
+    ${chips}
+    <div class="modes">
+      <label><input type="radio" name="mode" value="balanced" checked> Balanced menu <small>— dishes share the table (recommended)</small></label>
+      <label><input type="radio" name="mode" value="full"> Full portions of everything <small>— every item sized for all guests</small></label>
+    </div>
+    <div data-rows></div>
+  </div>`;
+}
+
 {
   const urlPath = `/party-food-calculator/`;
   const title = `Party Food Calculator — How Much Food & Drink for Your Party`;
-  const desc = `Enter your guest count and get quantities for the whole party at once: pizza, burgers, bbq, sides, dessert, ice, soda, beer, wine, and coffee.`;
-  const names = {};
-  for (const it of ITEMS) names[it.slug] = { name: it.name, emoji: it.emoji, href: calcHref(it) };
-  const body = `<div class="tool" data-party="menu" data-config='${JSON.stringify(names)}'>
-    <div class="row"><div><label for="g">Number of guests</label><input type="number" id="g" data-guests value="25" min="1"></div></div>
-    <div data-rows></div>
-  </div>
-  <div class="prose"><p>Quantities use standard catering portions and assume each food item shares the table with a couple of others — if one dish is the whole show (only pizza, only bbq), bump that line up by about 25%.</p>${ADJUST}</div>
+  const desc = `Pick your guest count and the foods you're serving — get quantities for the whole menu at once, sized so dishes share the table (or full portions of everything).`;
+  const body = `${plannerTool("m")}
+  <div class="prose"><p><strong>Balanced menu</strong> is how caterers plan: guests fill one plate across everything on the table, so with several mains you need roughly 60% of each for two, 40% for three — a little over an even split, because variety makes people graze. Drinks work the same way: people pick a lane, they don't drink full amounts of soda <em>and</em> beer. <strong>Full portions of everything</strong> sizes every item for your whole guest list — pick it when you'd rather have leftovers than any chance of running out, or when items are served at different times.</p><p>Ice and coffee never get scaled down — you need a pound of ice per person no matter how many foods share the table.</p>${ADJUST}</div>
   <h2 id="items">Item-by-item calculators</h2>
   ${grid(itemGrid)}`;
   writePage(urlPath, layout({ title, desc, urlPath, h1: "Party Food Calculator", hero: "", body, useTool: true }));
@@ -164,8 +188,8 @@ for (const it of ITEMS) {
 {
   const title = `${SITE} — How Much Food & Drink for a Party?`;
   const desc = `Free party planning calculators: how many pizzas, burgers, wings, or drinks for 10 to 300 guests — with package counts, catering portions, and crowd adjustments.`;
-  const body = `<p class="lead">How much food do you actually need? Standard catering portions for every party staple, sized to your guest list — with package counts so the shopping list writes itself.</p>
-  ${grid([{ href: "/party-food-calculator/", emoji: "📋", label: "Full Menu Planner" }])}
+  const body = `<p class="lead">How much food do you actually need? Pick your headcount and what you're serving — standard catering portions with package counts, so the shopping list writes itself.</p>
+  ${plannerTool("h")}
   <h2 id="items">Plan by item</h2>
   ${grid(itemGrid)}
   <h2>Popular answers</h2>
@@ -179,7 +203,7 @@ for (const it of ITEMS) {
     { href: "/beer-for-30-people/", label: "Beer for 30 people" },
     { href: "/coffee-for-100-people/", label: "Coffee for 100 people" },
   ])}`;
-  writePage(`/`, layout({ title, desc, urlPath: `/`, h1: `Party Food &amp; Drink Calculator`, hero: "", body }));
+  writePage(`/`, layout({ title, desc, urlPath: `/`, h1: `Party Food &amp; Drink Calculator`, hero: "", body, useTool: true }));
 }
 
 // -- sitemap + robots + meta files --

@@ -21,14 +21,29 @@
         out.innerHTML = v.big + " " + v.unit + "<small>" + v.sub + "</small>";
         rowsEl.innerHTML = rowsTable(["What", "Amount"], v.rows);
       } else {
+        // Whole-menu planner: selected food chips + serving mode.
         const cfg = JSON.parse(tool.dataset.config);
-        const rows = Object.keys(cfg).map(slug => {
-          const v = PartyMath.compute(slug, g);
-          return ['<a href="' + cfg[slug].href + '">' + cfg[slug].emoji + " " + cfg[slug].name + "</a>", v.big + " " + v.unit];
+        const slugs = Array.prototype.map.call(tool.querySelectorAll(".chip.on"), b => b.dataset.slug);
+        const modeEl = tool.querySelector("[name=mode]:checked");
+        const balanced = !modeEl || modeEl.value === "balanced";
+        if (!slugs.length) {
+          rowsEl.innerHTML = '<p class="empty-note">Tap the foods and drinks you’re serving to build the list.</p>';
+          return;
+        }
+        const rows = PartyMath.plan(slugs, g, balanced).map(p => {
+          const c = cfg[p.slug];
+          const note = p.factor < 1
+            ? '<small class="share-note">portion sized for ~' + p.effN + " of " + g + " guests — it shares the menu</small>"
+            : "";
+          return ['<a href="' + c.href + '">' + c.emoji + " " + c.name + "</a>", p.v.big + " " + p.v.unit + note];
         });
         rowsEl.innerHTML = rowsTable(["Item", "For " + g + " guests"], rows);
       }
     }
+
+    tool.querySelectorAll(".chip").forEach(b =>
+      b.addEventListener("click", () => { b.classList.toggle("on"); run(); }));
+    tool.querySelectorAll("[name=mode]").forEach(r => r.addEventListener("change", run));
     input.addEventListener("input", run);
     run();
   });

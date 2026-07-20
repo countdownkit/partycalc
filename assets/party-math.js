@@ -228,5 +228,46 @@
     },
   };
 
-  return { compute: (slug, n) => (ITEMS[slug] ? ITEMS[slug](Math.max(1, Math.round(n))) : null), slugs: Object.keys(ITEMS) };
+  // ---- whole-menu planning ----
+  // Category drives the "balanced menu" math: when several items share a category,
+  // guests split their appetite across them. 'other' (ice, coffee) never scales down
+  // — you need a pound of ice per person no matter how many foods you serve.
+  const CATEGORY = {
+    pizza: "main", burgers: "main", "hot-dogs": "main", wings: "main", "pulled-pork": "main",
+    brisket: "main", tacos: "main", sandwiches: "main", "fried-chicken": "main", pasta: "main",
+    salad: "side", appetizers: "side", "chips-and-dip": "side",
+    cake: "dessert", cupcakes: "dessert",
+    soda: "drink", beer: "drink", wine: "drink", water: "drink",
+    coffee: "other", ice: "other",
+  };
+
+  // Catering rule of thumb: with k dishes sharing a course, plan about 1.25/k of the
+  // full amount of each (2 mains -> ~60% each, 3 -> ~40%). Variety makes people eat a
+  // little more in total — hence 1.25, not 1. Drinks use the same split: guests pick a
+  // lane (soda vs beer vs wine), they don't drink full amounts of each.
+  function shareFactor(k) { return k <= 1 ? 1 : Math.min(1, 1.25 / k); }
+
+  // plan(['pizza','wings',...], 25, true) -> per-item quantities. balanced=false sizes
+  // every item for the full guest count. Scaling works by shrinking the effective guest
+  // count per item, so package math and detail rows stay consistent automatically.
+  function plan(slugs, n, balanced) {
+    n = Math.max(1, Math.round(n));
+    const counts = {};
+    if (balanced) for (const s of slugs) {
+      const c = CATEGORY[s] || "other";
+      if (c !== "other") counts[c] = (counts[c] || 0) + 1;
+    }
+    return slugs.filter(s => ITEMS[s]).map(s => {
+      const c = CATEGORY[s] || "other";
+      const factor = balanced && c !== "other" ? shareFactor(counts[c]) : 1;
+      const effN = Math.max(1, Math.round(n * factor));
+      return { slug: s, category: c, factor, effN, v: ITEMS[s](effN) };
+    });
+  }
+
+  return {
+    compute: (slug, n) => (ITEMS[slug] ? ITEMS[slug](Math.max(1, Math.round(n))) : null),
+    slugs: Object.keys(ITEMS),
+    category: CATEGORY, shareFactor, plan,
+  };
 });

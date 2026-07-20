@@ -19,6 +19,12 @@ fast, light UI.
 formula anywhere else; static pages and live calculators must always agree. `data/items.json`
 holds only copy (names, blurbs, tips) and the guest-count list.
 
+This includes the menu planner's "balanced menu" math (`PartyMath.plan`): items carry a
+CATEGORY (main/side/dessert/drink/other) and when k items share a category each is scaled
+by `min(1, 1.25/k)` via a reduced effective guest count (so package rows stay consistent).
+'other' (ice, coffee) never scales. The planner widget (food chips + mode toggle) is on
+the homepage AND /party-food-calculator/ — markup from `plannerTool()` in generate.js.
+
 ## Deploy — just push
 
 `git push` to `main` is the deploy — GitHub Actions (`.github/workflows/deploy.yml`) runs
